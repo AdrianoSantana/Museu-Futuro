@@ -3,3 +3,5 @@ Sensor de temperatura lm35: http://www.ti.com/lit/ds/symlink/lm35.pdf;
 Sensor de movimento/presença : https://www.epitran.it/ebayDrive/datasheet/44.pdf / https://www.mpja.com/download/31227sc.pdf;
 ServoMotor: http://robocraft.ru/files/datasheet/28BYJ-48.pdf;
 Sensor de vibração: http://funduino.de/DL/SW-520D.pdf
+
+temperatura = (float(analogRead(LM35))*5/(1023))/0.01;
