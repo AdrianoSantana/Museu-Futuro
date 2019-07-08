@@ -14,7 +14,10 @@
 #define LM35 35
 #define umidade 33
 #define dht_dpin 23
-#define atuador 26
+#define atuador 14
+#define buzzer 22
+#define janela_open 12
+//#define janela_close 
 
 dht DHT;
 /////////////////////////////////////////////////////////////////////
@@ -24,13 +27,46 @@ const char* password = "acessocin";
 int ldr_valor = 0;
 bool presenca_valor;
 float temperatura = 0;
+const int stepsPerRevolution = 500; 
+Stepper myStepper(stepsPerRevolution, 27,25,26,33); 
+bool janela = LOW; // LOW janela fechada
 ////////////////////////////////////////////////////////////////////
+
+void abre () {
+  // Antihorario
+ myStepper.setSpeed(60); 
+ for (int i = 0; i<=6; i++){
+  myStepper.step(180);
+ }
+}
+
+
+void fecha () {
+  //Horario
+ myStepper.setSpeed(60);
+ for (int i = 0; i<=6; i++){
+  myStepper.step(-180);
+ }
+}
+
+void pwm_luz(int valor_luz) {
+
+  if(valor_luz >= 0 || valor_luz <= 819){
+    
+  }
+  
+}
+
 
 void setup() {
   pinMode(ldr_pino,INPUT);
   pinMode(presenca,INPUT);
   pinMode(LM35,INPUT);
   pinMode(atuador,OUTPUT);
+  pinMode(buzzer,OUTPUT);
+  pinMode(janela_open,OUTPUT);
+  
+  myStepper.setSpeed(60);
   
   Serial.begin(9600);
   
@@ -51,16 +87,36 @@ void loop() {
   // put your main code here, to run repeatedly:
   
   ldr_valor = analogRead(ldr_pino);
-  if(ldr_valor <= 1000)
-    digitalWrite(atuador,HIGH);
-  else
-    digitalWrite(atuador,LOW);
-    
   Serial.print("Valor LDR :");
   Serial.println(ldr_valor);
+   if(ldr_valor >= 800 && janela == HIGH){
+      janela = LOW;
+      fecha();
+      digitalWrite(janela_open,LOW);
+   }
+   if(ldr_valor <= 800 && janela == LOW) {
+    janela = HIGH;
+    abre();
+    digitalWrite(janela_open,HIGH);
+   }
+      
+  if(ldr_valor >= 1200){
+    digitalWrite(buzzer,HIGH);
+  }
+  else{
+    digitalWrite(buzzer,LOW);
+  }
+ 
+  
+
 
   temperatura = ((float(analogRead(LM35))*5/(4095))/0.01)/2;
   temperatura = temperatura - 9;
+  if(temperatura >= 25)
+    digitalWrite(atuador,HIGH);
+  else
+    digitalWrite(atuador,LOW);
+  
   Serial.print("Temperatura: ");
   Serial.println(temperatura);
 
@@ -75,14 +131,16 @@ void loop() {
   else
     Serial.println("Não detectado");
     
-  
+
+ delay(1000);
+  /* 
    Firebase.setInt("Sensor_Luz",ldr_valor);
    Firebase.setInt("umidade",DHT.humidity);
    Firebase.setFloat("Temperatura",temperatura);
    Firebase.setBool("Deteccao",presenca_valor);
   
-  delay(1000);
- 
+  
+ */
   
 
 
