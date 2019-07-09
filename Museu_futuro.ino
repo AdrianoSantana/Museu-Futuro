@@ -1,3 +1,6 @@
+#include <Arduino.h>
+#include <analogWrite.h>
+
 //////////////////////////////// Bibliotecas ////////////////////////////
 #include <Stepper.h>
 #include <IOXhop_FirebaseStream.h>
@@ -17,7 +20,7 @@
 #define atuador 14
 #define buzzer 22
 #define janela_open 12
-//#define janela_close 
+#define pwm 5
 
 dht DHT;
 /////////////////////////////////////////////////////////////////////
@@ -51,11 +54,22 @@ void fecha () {
 
 void pwm_luz(int valor_luz) {
 
-  if(valor_luz >= 0 || valor_luz <= 819){
-    
-  }
-  
+  if(valor_luz >= 0 && valor_luz <= 819)
+      analogWrite(pwm,255); //255
+  if(valor_luz > 819 && valor_luz <= 1638)
+      analogWrite(pwm,204); // 204
+
+  if(valor_luz > 1638 && valor_luz <= 2457)
+      analogWrite(pwm,153); //153
+
+  if(valor_luz > 2457 && valor_luz <= 3276)
+      analogWrite(pwm,102); // 102
+
+  if(valor_luz > 3276 && valor_luz <= 4095 )
+      analogWrite(pwm,51); //51
+
 }
+
 
 
 void setup() {
@@ -65,6 +79,9 @@ void setup() {
   pinMode(atuador,OUTPUT);
   pinMode(buzzer,OUTPUT);
   pinMode(janela_open,OUTPUT);
+  pinMode(pwm,OUTPUT);
+  analogWriteResolution(pwm, 8);
+  
   
   myStepper.setSpeed(60);
   
@@ -72,7 +89,6 @@ void setup() {
   
   WiFi.begin(ssid,password);
   while(WiFi.status() != WL_CONNECTED){
-    delay(1000);
     Serial.println("Conectando ao wifi"); 
   }
   Serial.print("Meu ip: ");
@@ -89,6 +105,8 @@ void loop() {
   ldr_valor = analogRead(ldr_pino);
   Serial.print("Valor LDR :");
   Serial.println(ldr_valor);
+  pwm_luz(ldr_valor);
+ 
    if(ldr_valor >= 800 && janela == HIGH){
       janela = LOW;
       fecha();
@@ -100,7 +118,7 @@ void loop() {
     digitalWrite(janela_open,HIGH);
    }
       
-  if(ldr_valor >= 1200){
+  if(ldr_valor >= 1450){
     digitalWrite(buzzer,HIGH);
   }
   else{
@@ -121,10 +139,10 @@ void loop() {
   Serial.println(temperatura);
 
   DHT.read11(dht_dpin);
+ 
   Serial.print("Umidade = ");
   Serial.print(DHT.humidity);
   Serial.println(" %  ");
-
   presenca_valor = digitalRead(presenca);
   if(presenca_valor == HIGH)
     Serial.println("Detectado");
@@ -132,15 +150,13 @@ void loop() {
     Serial.println("Não detectado");
     
 
- delay(1000);
-  /* 
+  
    Firebase.setInt("Sensor_Luz",ldr_valor);
    Firebase.setInt("umidade",DHT.humidity);
    Firebase.setFloat("Temperatura",temperatura);
    Firebase.setBool("Deteccao",presenca_valor);
   
-  
- */
+ 
   
 
 
